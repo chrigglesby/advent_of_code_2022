@@ -2276,3 +2276,6 @@ elves.sort()
 
 # Print last (highest)
 print(elves[-1])
+
+# Print last three total
+print(sum(elves[-3:]))
