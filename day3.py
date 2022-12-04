@@ -312,7 +312,7 @@ alpha = list(string.ascii_lowercase) + list(string.ascii_uppercase)
 
 
 # Take input string, split on newline, split in half for compartments
-def parse(input: str):
+def parse(input: str, compartments: bool):
     def compartmentalise(string: str):
         return [
             string[:len(string) // 2],
@@ -320,7 +320,8 @@ def parse(input: str):
         ]
 
     output = input.split('\n')
-    output = list(map(compartmentalise, output))
+    if compartments:
+        output = list(map(compartmentalise, output))
     return output
 
 
@@ -364,7 +365,68 @@ def sum_dupes(duplicates: list):
     return total
 
 
-backpacks = parse(data)
-duplicates = backpacks_to_dupes(backpacks)
+compartmentalised_backpacks = parse(sample_data, True)
+duplicates = backpacks_to_dupes(compartmentalised_backpacks)
+duplicates_sum = sum_dupes(duplicates)
+print(duplicates_sum)  # Answer: 7824
 
-print(sum_dupes(duplicates))
+# Part 2
+
+
+def arrange_trios(packs: list) -> list:
+    trios = []
+    musketeers = []
+
+    for b in packs:
+        musketeers.append(b)
+
+        if len(musketeers) == 3:
+            # Add trio
+            trios.append(musketeers)
+            # Reset
+            musketeers = []
+
+    return trios
+
+
+# Of lists find common values, shared by all lists
+def trio_to_badge(musketeers: list):
+    common = []
+    # Check multi list
+    if len(musketeers) < 2:
+        raise ValueError('expects multiple lists for comparison')
+
+    # Loop characters of first list
+    for char in list(musketeers[0]):
+        is_common = True
+
+        # Loop remaining lists
+        for m in musketeers[1:]:
+            # Check in this backpack
+            if char not in list(m):
+                is_common = False
+
+        # Determined common and not already selected
+        if is_common and char not in common:
+            common.append(char)
+
+    return common
+
+
+def sum_badges(trios: list):
+    badges = list(map(trio_to_badge, trios))
+    total = 0
+
+    for b in badges:
+        for char in b:
+            total += get_priority_value(char)
+
+    return total
+
+
+# Confirmed data set is divisible by 3
+backpacks = parse(data, False)
+trios = arrange_trios(backpacks)
+badges_sum = sum_badges(trios)
+
+print(badges_sum)  # Answer: 2798
