@@ -537,16 +537,9 @@ def parse(input: str):
     return list(map(parse_direction, input.split('\n')))
 
 
-# Array slicing
-# Move will reverse order of array
-
-
 def apply_directions(directions_list: list, crates_list: list, crane_model: int):
     for d in directions_list:
         move_crates(d[0], d[1], d[2], crates_list, crane_model)
-    # move_crates(directions_list[0][0], directions_list[0][1], directions_list[0][2], crates_list)
-    # print(crates_list)
-    # move_crates(directions_list[1][0], directions_list[1][1], directions_list[1][2], crates_list)
 
 
 def move_crates(amount: int, move_from: int, move_to: int, crate_stacks: list, crane_model: int):
