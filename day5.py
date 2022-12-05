@@ -541,19 +541,25 @@ def parse(input: str):
 # Move will reverse order of array
 
 
-def apply_directions(directions_list: list, crates_list: list):
+def apply_directions(directions_list: list, crates_list: list, crane_model: int):
     for d in directions_list:
-        move_crates(d[0], d[1], d[2], crates_list)
+        move_crates(d[0], d[1], d[2], crates_list, crane_model)
     # move_crates(directions_list[0][0], directions_list[0][1], directions_list[0][2], crates_list)
     # print(crates_list)
     # move_crates(directions_list[1][0], directions_list[1][1], directions_list[1][2], crates_list)
 
 
-def move_crates(amount: int, move_from: int, move_to: int, crate_stacks: list):
+def move_crates(amount: int, move_from: int, move_to: int, crate_stacks: list, crane_model: int):
+    load = []
     while amount > 0:
         lift = crate_stacks[move_from - 1].pop(-1)
-        crate_stacks[move_to - 1].append(lift)
+        load.append(lift)
         amount -= 1
+
+    if crane_model == 9001:
+        load.reverse()
+
+    crate_stacks[move_to - 1].extend(load)
 
 
 def gather_top_crates(crate_stacks: list):
@@ -565,15 +571,30 @@ def gather_top_crates(crate_stacks: list):
 
 
 # Part 1 - Sample
-print(sample_crates)
-# Note: In place
-apply_directions(parse(sample_directions), sample_crates)
-print(sample_crates)
-print(gather_top_crates(sample_crates))
+# print(sample_crates)
+# # Note: In place
+# apply_directions(parse(sample_directions), sample_crates, 9000)
+# print(sample_crates)
+# print(gather_top_crates(sample_crates))  # Answer: CMZ
+#
+# # Part 1 - Actual
+# print(crates)
+# # Note: In place
+# apply_directions(parse(directions), crates, 9000)
+# print(crates)
+# print(gather_top_crates(crates))  # Answer: RNZLFZSJH
 
-# Part 1 - Actual
+
+# Part 2 - Sample
+print(sample_crates)
+# Note: In place
+apply_directions(parse(sample_directions), sample_crates, 9001)
+print(sample_crates)
+print(gather_top_crates(sample_crates))  # Answer: MCD
+
+# Part 2 - Actual
 print(crates)
 # Note: In place
-apply_directions(parse(directions), crates)
+apply_directions(parse(directions), crates, 9001)
 print(crates)
-print(gather_top_crates(crates))
+print(gather_top_crates(crates))  # Answer: CNSFCGJSM
