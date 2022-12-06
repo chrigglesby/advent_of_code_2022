@@ -21,5 +21,6 @@ def packet_index(code: str, distinct_amount: int):
 
     raise ValueError('provided code has no packet index')
 
+
 print(packet_index(data, 4))  # Answer: 1356
 print(packet_index(data, 14))  # Answer: 2564
