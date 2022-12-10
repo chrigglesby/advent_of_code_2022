@@ -1122,6 +1122,11 @@ def parse(input: str):
         global dir_depth
         return dir_depth[-1]
 
+    def current_path():
+        global dir_depth
+        print('/'.join(dir_depth))
+        return '/'.join(dir_depth)
+
     # Checks
     def is_cd(s: str):
         return s[:5] == '$ cd '
@@ -1162,7 +1167,8 @@ def parse(input: str):
         directory = Dir(
             dir_id=dir_id_inc,
             name=s[4:],
-            parent=current_dir()
+            parent=current_path()
+            # path=current_path()
         )
         structure.append(directory)
         dir_id_inc += 1
@@ -1181,7 +1187,7 @@ def parse(input: str):
             file_id=file_id_inc,
             name=file_name,
             size=int(file_size),
-            dir_name=current_dir()
+            path=current_path()
         )
         structure.append(file)
         file_id_inc += 1
@@ -1206,17 +1212,18 @@ def parse(input: str):
 class Dir:
     def __init__(self, dir_id, name, parent):
         self.dir_id = dir_id
-        self.name = name
-        self.parent = parent
+        self.name = parent + '/' + name
+        self.parent = parent  # Is now a path
+        # self.path = path
         self.depth = 0
 
 
 class File:
-    def __init__(self, file_id, name, size: int, dir_name):
+    def __init__(self, file_id, name, size: int, path):
         self.file_id = file_id
         self.name = name
         self.size = size
-        self.dir_name = dir_name
+        self.path = path
 
 
 # Get a directory from structure by name
@@ -1232,16 +1239,36 @@ def get_dir(name: str):
 
 def structure_to_dir_sizes(strc: list):
     dir_sizes = {}
+    dirs = 0
 
+    # Create directories
+    # TODO: There must be duplicate directories
+    for item in strc:
+        if isinstance(item, Dir):
+            dirs += 1
+            dir_sizes[item.name] = []
+
+    print('Length Checks', len(dir_sizes))
+
+    # Add Items
+    # Note: Will also add '/' directory
     for item in strc:
         if isinstance(item, File):
             try:
-                check = dir_sizes[item.dir_name]
+                check = dir_sizes[item.path]
             except KeyError:
                 # Make list if not there
-                dir_sizes[item.dir_name] = []
+                dir_sizes[item.path] = []
 
-            dir_sizes[item.dir_name].append(item.size)
+            dir_sizes[item.path].append(item.size)
+
+        # elif isinstance(item, Dir):
+        #     try:
+        #         check = dir_sizes[item.name]
+        #     except KeyError:
+        #         raise KeyError('Should never happen now eh')
+        #         # Make list if not there
+        #         dir_sizes[item.name] = [0]  # Account for directory, but add no size
 
     return dir_sizes
 
@@ -1254,8 +1281,10 @@ def sum_dir_file_sizes(dir_sizes: dict):
 
 
 # Now that I have dir sizes using files
-# use my structure to add summed dir size if there is a child connection
+# use my structure to add summed dir size if there is a parent connection
 def sum_dir_sizes_with_sub_directories(dir_sizes: dict):
+    # TODO: Hypothesis, I'm not retaining the original directory?
+
     def sort_by_depth(item):
         y = get_dir(item)
         if y:
@@ -1270,7 +1299,11 @@ def sum_dir_sizes_with_sub_directories(dir_sizes: dict):
         directory = get_dir(d)
         if directory:  # Only directory to be skipped will be '/'
             # Use parent, add directory sum, to that item
-            dir_sizes[directory.parent] += dir_sizes[d]
+            try:
+                dir_sizes[directory.parent] += dir_sizes[d]
+            except KeyError:
+                raise KeyError('Now that we add empty directories in structure_to_dir_sizes,'
+                               ' this error should not be triggered')
 
     return dir_sizes
 
@@ -1302,8 +1335,15 @@ def assign_structure_depth():
 
 
 # INPUT HERE:
-parse(sample_data)
+parse(data)
 assign_structure_depth()
+
+i = 0
+for x in structure:
+    if isinstance(x, Dir):
+        i += 1
+
+print('# of directories in structure:', i)
 
 # print(structure)
 
@@ -1312,13 +1352,16 @@ assign_structure_depth()
 #     if isinstance(x, Dir):
 #         print(f'{x.name}, par: {x.parent}, dep: {x.depth}')
 #     elif isinstance(x, File):
-#         print(f'{x.name}, {x.size}, loc: {x.dir_name}')
+#         print(f'{x.name}, {x.size}, loc: {x.path}')
 #     else:
 #         print('so... what is it?', x)
 
+
+# TODO: This is where we lose 50
 dfs = structure_to_dir_sizes(structure)
 
 # print(dfs)
+print('# of directories in dfs, expect 200:', len(dfs))
 
 # This gives us the directory sizes not considering child directories
 sum_ds = sum_dir_file_sizes(dfs)
@@ -1327,7 +1370,10 @@ sum_ds = sum_dir_file_sizes(dfs)
 
 # Now we have actual directory sizes
 ds = sum_dir_sizes_with_sub_directories(sum_ds)
-print(ds)
+# print(ds)
+print('# of directory sizes in ds:', len(ds))
+# TODO: There is a discrepancy here, structure lists 200 dirs, and ds has 150
+#  we must account for this missing 50
 
 
 # To sizes only
@@ -1339,7 +1385,7 @@ def dirs_to_size_only(dirs):
 
 
 ds = dirs_to_size_only(ds)
-print(ds)
+# print(ds)
 
 
 # To those over 100,000
@@ -1348,7 +1394,11 @@ def max_hundo_thouy(x):
 
 
 sizes_under_hunnet_kay = list(filter(max_hundo_thouy, ds))
-print(sizes_under_hunnet_kay)
+# print(sizes_under_hunnet_kay)
 
 # To sum
 print(sum(sizes_under_hunnet_kay))  # Answer with sample data: 95437
+# Wrong Answer: 849957
+# Wrong Answer: 1150960 too low
+# Wrong Answer: 1065322
+# Answer: 1306611
