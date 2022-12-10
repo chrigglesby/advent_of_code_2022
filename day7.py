@@ -1345,7 +1345,7 @@ def dirs_to_size_only(dirs):
 
 
 ds = dirs_to_size_only(ds)
-# print(ds)
+print(ds)
 
 
 # To those over 100,000
@@ -1357,8 +1357,28 @@ sizes_under_hunnet_kay = list(filter(max_hundo_thouy, ds))
 # print(sizes_under_hunnet_kay)
 
 # To sum
-print(sum(sizes_under_hunnet_kay))  # Answer with sample data: 95437
+# print(sum(sizes_under_hunnet_kay))  # Answer with sample data: 95437
 # Wrong Answer: 849957
 # Wrong Answer: 1150960 too low
 # Wrong Answer: 1065322
 # Answer: 1306611
+
+# Part 2
+total_disk_space = 70000000
+required_space = 30000000
+used_space = sorted(ds)[-1]
+remaining_space = total_disk_space - used_space
+
+
+def get_possible_delete_directories(x: list):
+    d = []
+
+    for y in x:
+        if remaining_space + y >= required_space:
+            d.append(y)
+
+    return d
+
+
+# Smallest possible directory to delete to install update
+print(sorted(get_possible_delete_directories(ds))[0])
