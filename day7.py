@@ -1118,13 +1118,8 @@ def parse(input: str):
     output = input.split('\n')
 
     # Helpers
-    def current_dir():
-        global dir_depth
-        return dir_depth[-1]
-
     def current_path():
         global dir_depth
-        print('/'.join(dir_depth))
         return '/'.join(dir_depth)
 
     # Checks
@@ -1167,8 +1162,7 @@ def parse(input: str):
         directory = Dir(
             dir_id=dir_id_inc,
             name=s[4:],
-            parent=current_path()
-            # path=current_path()
+            path=current_path()
         )
         structure.append(directory)
         dir_id_inc += 1
@@ -1210,11 +1204,10 @@ def parse(input: str):
 
 
 class Dir:
-    def __init__(self, dir_id, name, parent):
+    def __init__(self, dir_id, name, path):
         self.dir_id = dir_id
-        self.name = parent + '/' + name
-        self.parent = parent  # Is now a path
-        # self.path = path
+        self.name = path + '/' + name
+        self.path = path
         self.depth = 0
 
 
@@ -1239,16 +1232,12 @@ def get_dir(name: str):
 
 def structure_to_dir_sizes(strc: list):
     dir_sizes = {}
-    dirs = 0
 
     # Create directories
     # TODO: There must be duplicate directories
     for item in strc:
         if isinstance(item, Dir):
-            dirs += 1
             dir_sizes[item.name] = []
-
-    print('Length Checks', len(dir_sizes))
 
     # Add Items
     # Note: Will also add '/' directory
@@ -1261,14 +1250,6 @@ def structure_to_dir_sizes(strc: list):
                 dir_sizes[item.path] = []
 
             dir_sizes[item.path].append(item.size)
-
-        # elif isinstance(item, Dir):
-        #     try:
-        #         check = dir_sizes[item.name]
-        #     except KeyError:
-        #         raise KeyError('Should never happen now eh')
-        #         # Make list if not there
-        #         dir_sizes[item.name] = [0]  # Account for directory, but add no size
 
     return dir_sizes
 
@@ -1283,8 +1264,6 @@ def sum_dir_file_sizes(dir_sizes: dict):
 # Now that I have dir sizes using files
 # use my structure to add summed dir size if there is a parent connection
 def sum_dir_sizes_with_sub_directories(dir_sizes: dict):
-    # TODO: Hypothesis, I'm not retaining the original directory?
-
     def sort_by_depth(item):
         y = get_dir(item)
         if y:
@@ -1300,7 +1279,7 @@ def sum_dir_sizes_with_sub_directories(dir_sizes: dict):
         if directory:  # Only directory to be skipped will be '/'
             # Use parent, add directory sum, to that item
             try:
-                dir_sizes[directory.parent] += dir_sizes[d]
+                dir_sizes[directory.path] += dir_sizes[d]
             except KeyError:
                 raise KeyError('Now that we add empty directories in structure_to_dir_sizes,'
                                ' this error should not be triggered')
@@ -1325,7 +1304,7 @@ def assign_structure_depth():
             while parent != '/':
                 depth += 1
                 # Get parent directory
-                parent = get_dir(target.parent)
+                parent = get_dir(target.path)
                 if parent:
                     target = parent
                 else:
@@ -1338,42 +1317,23 @@ def assign_structure_depth():
 parse(data)
 assign_structure_depth()
 
-i = 0
-for x in structure:
-    if isinstance(x, Dir):
-        i += 1
-
-print('# of directories in structure:', i)
-
-# print(structure)
-
 # Let's have a look
 # for x in structure:
 #     if isinstance(x, Dir):
-#         print(f'{x.name}, par: {x.parent}, dep: {x.depth}')
+#         print(f'{x.name}, par: {x.path}, dep: {x.depth}')
 #     elif isinstance(x, File):
 #         print(f'{x.name}, {x.size}, loc: {x.path}')
 #     else:
 #         print('so... what is it?', x)
 
 
-# TODO: This is where we lose 50
 dfs = structure_to_dir_sizes(structure)
-
-# print(dfs)
-print('# of directories in dfs, expect 200:', len(dfs))
 
 # This gives us the directory sizes not considering child directories
 sum_ds = sum_dir_file_sizes(dfs)
 
-# print(sum_ds)
-
 # Now we have actual directory sizes
 ds = sum_dir_sizes_with_sub_directories(sum_ds)
-# print(ds)
-print('# of directory sizes in ds:', len(ds))
-# TODO: There is a discrepancy here, structure lists 200 dirs, and ds has 150
-#  we must account for this missing 50
 
 
 # To sizes only
