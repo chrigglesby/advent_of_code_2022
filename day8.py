@@ -129,21 +129,26 @@ def from_coords(x: int, y: int):
 
 
 # Return if visible from left/right
-def is_visible_horizontal(x: int, y: int) -> (bool, bool):
+def is_visible_horizontal(x: int, y: int, include_distance=False):
     global woods
-    left = woods[y][:x]
+    left = list(reversed(woods[y][:x]))
     right = woods[y][x + 1:]
     tree = from_coords(x, y)
 
     # Check left and right for higher Tree
-    vis_from_left = not contains_greater_or_equal(left, tree)
-    vis_from_right = not contains_greater_or_equal(right, tree)
+    vis_from_left = contains_greater_or_equal(left, tree, include_distance)
+    vis_from_right = contains_greater_or_equal(right, tree, include_distance)
 
-    return vis_from_left, vis_from_right
+    if include_distance:
+        # ((Bool, Int) | Bool, (Bool, Int) | Bool)
+        return vis_from_left, vis_from_right
+
+    # (Bool, Bool)
+    return not vis_from_left, not vis_from_right
 
 
 # Return if visible from top/bottom
-def is_visible_vertical(x: int, y: int) -> (bool, bool):
+def is_visible_vertical(x: int, y: int, include_distance=False):
     global woods
     above = []
     below = []
@@ -157,19 +162,32 @@ def is_visible_vertical(x: int, y: int) -> (bool, bool):
         # Note: We don't add the i == y because this is our tree
         i += 1
 
+    above = list(reversed(above))
     tree = from_coords(x, y)
 
     # Check above and below for higher Tree
-    vis_from_top = not contains_greater_or_equal(above, tree)
-    vis_from_bottom = not contains_greater_or_equal(below, tree)
+    vis_from_top = contains_greater_or_equal(above, tree, include_distance)
+    vis_from_bottom = contains_greater_or_equal(below, tree, include_distance)
 
-    return vis_from_top, vis_from_bottom
+    if include_distance:
+        # ((Bool, Int) | Bool, (Bool, Int) | Bool)
+        return vis_from_top, vis_from_bottom
+
+    # (Bool, Bool)
+    return not vis_from_top, not vis_from_bottom
 
 
-def contains_greater_or_equal(array: list, value: int) -> bool:
-    for x in array:
+# Note: When including distance, make sure to order array according to
+# direction you want distance measured
+def contains_greater_or_equal(array: list, value: int, include_distance=False) -> (bool, int):
+    for idx, x in enumerate(array):
         if x >= value:
+            if include_distance:
+                return True, idx + 1
             return True
+
+    if include_distance:
+        return False, len(array)
     return False
 
 
@@ -187,4 +205,21 @@ def count_trees_visible_from_outside():
     return count
 
 
+def scenic_score(x: int, y: int):
+    h = is_visible_horizontal(x, y, True)
+    v = is_visible_vertical(x, y, True)
+
+    return h[0][1] * h[1][1] * v[0][1] * v[1][1]
+
+
+def woods_scenic_score_map():
+    scenic_scores = []
+    for r_idx, row in enumerate(woods):
+        for c_idx, column in enumerate(row):
+            scenic_scores.append(scenic_score(c_idx, r_idx))
+
+    return scenic_scores
+
+
 print(count_trees_visible_from_outside())  # Answer: 1803
+print(sorted(woods_scenic_score_map())[-1])  # Answer 2: 268912
