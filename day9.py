@@ -7,6 +7,16 @@ D 1
 L 5
 R 2"""
 
+simple_data = """R 4
+L 4
+R 4
+L 4
+R 4
+L 4
+R 4
+L 4
+R 4"""
+
 
 data = """U 1
 D 2
@@ -2025,7 +2035,7 @@ def to_cardinal(x: str):
 def parse(input: str):
     def to_instruction(x: str):
         x = x.split(' ')
-        return [x[0], int(x[1])]
+        return [to_cardinal(x[0]), int(x[1])]
 
     output = list(map(to_instruction, input.split('\n')))
 
@@ -2091,6 +2101,94 @@ def tail_move_from_head_move():
     return
 
 
+# Cardinal direction to new coords
+def move(x: int, y: int, direction: str) -> (int, int):
+    if 'N' in direction:
+        y -= 1
+    if 'S' in direction:
+        y += 1
+    if 'E' in direction:
+        x += 1
+    if 'W' in direction:
+        x -= 1
+
+    return x, y
+
+
+# Are a,b coords within 1 unit of x,y?
+def touching(x: int, y: int, a: int, b: int) -> bool:
+    # 0 0 0
+    # 0 x 0
+    # 0 0 0
+
+    # On top of each other
+    if x == a and y == b:
+        return True
+    # E, W
+    if (x + 1 == a or x - 1 == a) and y == b:
+        return True
+    # N, S
+    if (y - 1 == b or y + 1 == b) and x == a:
+        return True
+    # NW, NE
+    if (x - 1 == a or x + 1 == a) and y - 1 == b:
+        return True
+    # SW, SE
+    if (x - 1 == a or x + 1 == a) and y + 1 == b:
+        return True
+
+    return False
+
+
+def draw_coords(x: int, y: int, a: int, b: int, width=6, height=5):
+    draw = ""
+    for h in range(height):
+        line = ''
+        for w in range(width):
+            if x == w and y == h:  # Head takes priority, so is checked first
+                line += ' H '
+            elif a == w and b == h:
+                line += ' T '
+            else:
+                line += ' . '
+        line += '\n'
+        draw += line
+
+    return draw
+
+
+def run_instructions(data_set: str):
+    instructions = parse(data_set)
+    h_pos = (0, 4)  # Bottom left
+    t_pos = h_pos
+    head_positions = [h_pos]
+    tail_positions = [h_pos]
+
+    for i in instructions:
+        # Run instruction for # steps
+        for n in range(i[1]):
+            # Move Head
+            h_pos = move(h_pos[0], h_pos[1], i[0])
+
+            if h_pos not in head_positions:
+                head_positions.append(h_pos)
+
+            # Move Tail
+            t_to_h_direction = a_to_b_cardinal_direction(t_pos[0], t_pos[1], h_pos[0], h_pos[1])
+
+            if not touching(t_pos[0], t_pos[1], h_pos[0], h_pos[1]):
+                t_pos = move(t_pos[0], t_pos[1], t_to_h_direction)
+
+            if t_pos not in tail_positions:
+                tail_positions.append(t_pos)
+
+            draw = draw_coords(h_pos[0], h_pos[1], t_pos[0], t_pos[1])
+            print(draw)
+
+    print('Head Positions: ', len(head_positions))
+    print('Tail Positions: ', len(tail_positions))
+
+
 # Coords to Cardinals Test
 def test_coords_to_cardinals():
     assert a_to_b_cardinal_direction(1, 1, 1, 1) == 'X'
@@ -2107,4 +2205,4 @@ def test_coords_to_cardinals():
 # Tests
 test_coords_to_cardinals()
 
-# print(parse(data))
+run_instructions(data)  # Answer: 6563
