@@ -307,29 +307,29 @@ cycle = 0
 while len(commands) > 0:
     cmd = commands.pop(0)
     cycle += 1
-    print('start cycle: ', cycle, 'reg: ', register)
+    # print('start cycle: ', cycle, 'reg: ', register)
     cycles.append(register)
 
     # if cmd[0] == 'noop':
     if cmd[0] == 'addx':
         cycle += 1
-        print('start cycle: ', cycle, 'reg: ', register)
+        # print('start cycle: ', cycle, 'reg: ', register)
         cycles.append(register)
 
         register = register + int(cmd[1])
 
-    print('cmd: ', cmd)
-    print('register: ', register)
-    print('cycle: ', cycle, 'cycles len: ', len(cycles))
+    # print('cmd: ', cmd)
+    # print('register: ', register)
+    # print('cycle: ', cycle, 'cycles len: ', len(cycles))
     # print('cycles: ', cycles)
 
 
-print(cycles[20])
-print(cycles[60])
-print(cycles[100])
-print(cycles[140])
-print(cycles[180])
-print(cycles[220])
+# print(cycles[20])
+# print(cycles[60])
+# print(cycles[100])
+# print(cycles[140])
+# print(cycles[180])
+# print(cycles[220])
 
 a = sum([
     cycles[20] * 20,
@@ -340,4 +340,36 @@ a = sum([
     cycles[220] * 220]
 )
 
-print(a)
+# print(a)
+
+
+def draw(start, end):
+    s = ''
+    for x in range(start, end):
+        val = cycles[x]
+        # print('x: ', x, 'x%40', x%40, 'val: ', val, 'Result:', val - 1 <= x - 1 <= val + 1)
+        x = x % 40
+
+        if val - 1 <= x - 1 <= val + 1:
+            s += '#'
+        else:
+            s += '.'
+
+    print(s)
+
+
+draw(1, 41)
+draw(41, 81)
+draw(81, 121)
+draw(121, 161)
+draw(161, 201)
+draw(201, 241)
+
+# ####.###...##..###..#....####.####.#..#.
+# ...#.#..#.#..#.#..#.#....#.......#.#..#.
+# ..#..#..#.#..#.#..#.#....###....#..#..#.
+# .#...###..####.###..#....#.....#...#..#.
+# #....#.#..#..#.#.#..#....#....#....#..#.
+# ####.#..#.#..#.#..#.####.#....####..##..
+
+# Part 2 Answer: ZRARLFZU
