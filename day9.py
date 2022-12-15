@@ -2151,9 +2151,6 @@ def run_instructions(data_set: str):
         tail_positions.append([h_pos])
         t_pos.append(h_pos)
 
-    print('t_pos: ', t_pos)
-    print('tail_positions: ', tail_positions)
-
     for i in instructions:
         # Run instruction for # steps
         for n in range(i[1]):
@@ -2163,7 +2160,6 @@ def run_instructions(data_set: str):
             if h_pos not in head_positions:
                 head_positions.append(h_pos)
 
-            # TODO: Loop knots
             for x in range(rope_length):
                 next_knot = h_pos if x == 0 else t_pos[x - 1]
                 # Move Tail
@@ -2173,12 +2169,8 @@ def run_instructions(data_set: str):
                     next_knot[0],
                     next_knot[1])
 
-                print(f'direction: {t_to_h_direction}', f't_pos[x]: {t_pos[x]}', f'next_knot: {next_knot}', f'index: {x}')
-
                 if not touching(t_pos[x][0], t_pos[x][1], next_knot[0], next_knot[1]):
                     t_pos[x] = move(t_pos[x][0], t_pos[x][1], t_to_h_direction)
-
-                print('moved:', t_pos[x])
 
                 if t_pos[x] not in tail_positions[x]:
                     tail_positions[x].append(t_pos[x])
