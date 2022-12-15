@@ -7,6 +7,15 @@ D 1
 L 5
 R 2"""
 
+sample_data_two = """R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20"""
+
 simple_data = """R 4
 L 4
 R 4
@@ -2019,6 +2028,8 @@ L 8
 U 10
 L 19"""
 
+rope_length = 9
+
 
 def to_cardinal(x: str):
     if x == 'U':
@@ -2052,7 +2063,7 @@ def parse(input: str):
 # Cardinal direction from A -> B
 def a_to_b_cardinal_direction(ax: int, ay: int, bx: int, by: int) -> str:
     # Points on top of each other
-    if ax == bx == ay == by:
+    if ax == bx and ay == by:
         return 'X'
 
     # Same horizontal
@@ -2070,35 +2081,6 @@ def a_to_b_cardinal_direction(ax: int, ay: int, bx: int, by: int) -> str:
     # Right
     if ax > bx:
         return 'SW' if ay < by else 'NW'
-
-
-def tail_move_from_head_move():
-    # Check proximity/positioning
-    a_to_b_cardinal_direction(0, 0, 1, 1)
-
-    # Adjacent (Move away)
-    # H above T + Up (Move away)
-    # H right of T + Right (Move away)
-    # H below of T + Down (Move away)
-    # H left of T + Left (Move away)
-        # Head move, tail move same
-
-    # Adjacent (Move into diagonal)
-        # Tail no move
-
-    # Adjacent (Move onto)
-        # Tail no move
-
-    # Diagonal positioning  (Move away)
-        # Tail takes place of Head
-
-    # Diagonal positioning (Move adjacent)
-        # Tail no move
-
-    # Diagonal positioning (Move onto)
-        # Tail no move
-
-    return
 
 
 # Cardinal direction to new coords
@@ -2158,11 +2140,19 @@ def draw_coords(x: int, y: int, a: int, b: int, width=6, height=5):
 
 
 def run_instructions(data_set: str):
+    global rope_length
     instructions = parse(data_set)
     h_pos = (0, 4)  # Bottom left
-    t_pos = h_pos
+    t_pos = []
     head_positions = [h_pos]
-    tail_positions = [h_pos]
+    tail_positions = []
+    # Generate lists for positions
+    for x in range(rope_length):
+        tail_positions.append([h_pos])
+        t_pos.append(h_pos)
+
+    print('t_pos: ', t_pos)
+    print('tail_positions: ', tail_positions)
 
     for i in instructions:
         # Run instruction for # steps
@@ -2173,20 +2163,32 @@ def run_instructions(data_set: str):
             if h_pos not in head_positions:
                 head_positions.append(h_pos)
 
-            # Move Tail
-            t_to_h_direction = a_to_b_cardinal_direction(t_pos[0], t_pos[1], h_pos[0], h_pos[1])
+            # TODO: Loop knots
+            for x in range(rope_length):
+                next_knot = h_pos if x == 0 else t_pos[x - 1]
+                # Move Tail
+                t_to_h_direction = a_to_b_cardinal_direction(
+                    t_pos[x][0],
+                    t_pos[x][1],
+                    next_knot[0],
+                    next_knot[1])
 
-            if not touching(t_pos[0], t_pos[1], h_pos[0], h_pos[1]):
-                t_pos = move(t_pos[0], t_pos[1], t_to_h_direction)
+                print(f'direction: {t_to_h_direction}', f't_pos[x]: {t_pos[x]}', f'next_knot: {next_knot}', f'index: {x}')
 
-            if t_pos not in tail_positions:
-                tail_positions.append(t_pos)
+                if not touching(t_pos[x][0], t_pos[x][1], next_knot[0], next_knot[1]):
+                    t_pos[x] = move(t_pos[x][0], t_pos[x][1], t_to_h_direction)
 
-            draw = draw_coords(h_pos[0], h_pos[1], t_pos[0], t_pos[1])
-            print(draw)
+                print('moved:', t_pos[x])
+
+                if t_pos[x] not in tail_positions[x]:
+                    tail_positions[x].append(t_pos[x])
+
+            # draw = draw_coords(h_pos[0], h_pos[1], t_pos[0], t_pos[1])
+            # print(draw)
 
     print('Head Positions: ', len(head_positions))
-    print('Tail Positions: ', len(tail_positions))
+    for x in range(rope_length):
+        print(f'Tail Positions [{x}]: ', len(tail_positions[x]))
 
 
 # Coords to Cardinals Test
@@ -2205,4 +2207,4 @@ def test_coords_to_cardinals():
 # Tests
 test_coords_to_cardinals()
 
-run_instructions(data)  # Answer: 6563
+run_instructions(data)  # Answer: 6563, Part 2: 2653
