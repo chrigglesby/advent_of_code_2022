@@ -84,6 +84,7 @@ class Ape:
     items: list
     operation: Operation
     test: Test
+    inspect_count = 0
 
     def apply_worry_relief(self):
         for idx, item in enumerate(self.items):
@@ -94,6 +95,8 @@ class Ape:
             print('  Relief multiplier applied: ', relief_applied_item)
             # Overwrite item with new worry value
             self.items[idx] = relief_applied_item
+            # Increment inspect_count
+            self.inspect_count += 1
 
     def do_throws(self):
         for i in range(len(self.items)):
@@ -151,19 +154,29 @@ def relief(x: int):
     return x // 3
 
 
+def do_round():
+    global apes
+    # This is a Round
+    # All Apes, All Items, Inspection Worry and Relief Applied, Items Thrown
+    for ape in apes:
+        print('Monkey: ', ape.number)
+        print(' Operation: ', ape.operation.operand, ape.operation.value)
+        ape.apply_worry_relief()
+        ape.do_throws()
+
+
 apes = parse(sample_data)
 
-# This is a Round
-# All Apes, All Items, Inspection Worry and Relief Applied
-for ape in apes:
-    print('Monkey: ', ape.number)
-    print(' Operation: ', ape.operation.operand, ape.operation.value)
-    ape.apply_worry_relief()
-    ape.do_throws()
+
+for i in range(20):
+    do_round()
 
 
+inspect_counts = []
+for a in apes:
+    inspect_counts.append(a.inspect_count)
 
-
-
-
+inspect_counts = sorted(inspect_counts)
+monkey_business = inspect_counts[-1] * inspect_counts[-2]
+print(monkey_business)
 
