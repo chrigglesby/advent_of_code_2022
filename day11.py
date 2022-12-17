@@ -51,6 +51,20 @@ ops = {
 }
 
 
+class Test:
+    def __init__(self, test, true_case: int, false_case: int):
+        self.test = test
+        self.true_case = true_case  # Monkey # to throw to
+        self.false_case = false_case  # Monkey # to throw to
+
+    def get_outcome(self, value):
+        if 'divisible by ' in self.test:
+            by = int(self.test[13:])
+            return self.true_case if value % by == 0 else self.false_case
+        else:
+            raise ValueError('Test is NOT divisible by')
+
+
 class Operation:
     def __init__(self, operand, value):
         self.operand = operand
@@ -69,6 +83,28 @@ class Ape:
     number: int
     items: list
     operation: Operation
+    test: Test
+
+    def apply_worry_relief(self):
+        for idx, item in enumerate(self.items):
+            print('  Inspecting: ', item)
+            worry_applied_item = self.operation.do_op(item)
+            print('  Worry multiplier applied: ', worry_applied_item)
+            relief_applied_item = relief(worry_applied_item)
+            print('  Relief multiplier applied: ', relief_applied_item)
+            # Overwrite item with new worry value
+            self.items[idx] = relief_applied_item
+
+    def do_throws(self):
+        for i in range(len(self.items)):
+            to_throw = self.items.pop(0)  # Current item
+            print('    Deciding where to throw: ', to_throw)
+            # Monkey makes decision
+            monkey_to_throw_to = self.test.get_outcome(to_throw)
+
+            print('      Throwing to: ', monkey_to_throw_to)
+            # Monkey throws
+            apes[monkey_to_throw_to].items.append(to_throw)
 
 
 def parse(input: str):
@@ -77,7 +113,7 @@ def parse(input: str):
     tribe = []
     current_ape = Ape()
 
-    for line in input:
+    for i, line in enumerate(input):
         if 'Monkey ' in line:
             # New Ape
             current_ape.number = int(line[7:-1])
@@ -88,6 +124,18 @@ def parse(input: str):
             current_ape.operation = Operation(
                 operand=tov[1],
                 value=tov[2]
+            )
+
+        elif '  Test: ' in line:
+            # On 'Test:' line, grab next two lines for processing
+            t = line[8:]  # This is always 'Test: divisible by '
+            tc = int(input[i + 1][29:])
+            fc = int(input[i + 2][30:])
+
+            current_ape.test = Test(
+                test=t,
+                true_case=tc,
+                false_case=fc
             )
 
             # Last step is
@@ -105,19 +153,17 @@ def relief(x: int):
 
 apes = parse(sample_data)
 
+# This is a Round
+# All Apes, All Items, Inspection Worry and Relief Applied
 for ape in apes:
     print('Monkey: ', ape.number)
     print(' Operation: ', ape.operation.operand, ape.operation.value)
-    for idx, item in enumerate(ape.items):
-        print('  Inspecting: ', item)
-        worry_applied_item = ape.operation.do_op(item)
-        # Overwrite item with new worry value
-        ape.items[idx] = worry_applied_item
-        print('  Worry multiplier applied: ', worry_applied_item)
-        relief_applied_item = relief(worry_applied_item)
-        print('  Relief multiplier applied: ', relief_applied_item)
-        # Overwrite item with new worry value
-        ape.items[idx] = relief_applied_item
+    ape.apply_worry_relief()
+    ape.do_throws()
+
+
+
+
 
 
 
